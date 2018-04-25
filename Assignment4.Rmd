@@ -7,10 +7,11 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+```
 
-#1)
-#12.6.1
-
+```{r}
+##1)
+###12.6.1
 library(tidyverse)
 
 tidyr::who
@@ -22,50 +23,57 @@ who %>%
   select(-new, -iso2, -iso3) %>% 
   separate(sexage, c("sex", "age"), sep = 1)
 
-#problem 3
-select(who,country, iso2, iso3) %>%
+##problem 3
+select(who,country, -iso2, -iso3) %>%
   distinct() %>%
   group_by(country) %>%
   filter(n()>1)
 
-#problem 4
+##problem 4
 who %>%
-  mutate(key = stringr::str_replace(key,"newrel","new_rel")) %>% 
-  separate(key,c("new","type","sexage"),sep="_") %>% 
-  count(new) %>% 
-  select(-new,ios2,-ios3) %>% 
+  gather(code, value, new_sp_m014:newrel_f65, na.rm = TRUE) %>% 
+  mutate(code = stringr::str_replace(code,"newrel","new_rel")) %>%
+  separate(code,c("new","type","sexage")) %>% 
+  select(-new, -iso2, -iso3) %>% 
   separate(sexage, c("sex","age"), sep=1) %>% 
   group_by(country, year, sex) %>%
   filter(year > 1995) %>%
-  summarise(cases = sum(cases)) %>%
+  summarise(cases = sum(value)) %>%
   unite(country_sex, country, sex, remove = FALSE) %>%
   ggplot(aes(x = year, y = cases, group = country_sex,   
-  colour = sex)) + geom_line())
+  colour = sex)) + geom_line()
 
+```
 #2)
 #10.5
 #problem 5
-  Enframe converts named atomic vectors or lists to two-column data frames. For unnamed vectors, the natural sequence is used as name column
+  Enframe converts named atomic vectors or lists to two-column data frames. For unnamed vectors, the natural sequence is used as name column.
 
+```{r}
 #3)
   pew <- as.tibble(read.csv("pew.csv"))
   pew.tidy <-pew %>%   
   gather(key="Income",value="Frenquency", -religion)
   pew.tidy
-  
-#4)
+```
+
+```{r}
+##4)
+library(tidyverse)
   bb <- as.tibble(read.csv("billboard.csv"))
+  
   bb.tidy <- bb %>% 
-  gather(key = "week", value = "rank" , -year, -  artist.inverted, -track, -time, -genre, -date.entered, ... = -date.peaked)%>% 
-  select(year, artist=artist.inverted, time, track, date=date.entered, week, rank) %>% 
-  arrange(track)%>% 
-  filter(!is.na(rank))%>% 
-  separate(week, into=c("A","B","C"), sep=c(1:2), convert = F)%>% 
-  select(-A,-C) %>% 
-  dplyr::rename(week = B) %>% 
-  arrange(artist,track)%>% 
-  mutate(date=as.Date(date) +(as.numeric(week)-1)*7) %>% 
-  mutate(rank = as.integer(rank)) 
-bb.tidy
+     gather(key = "week", value = "rank" , -year, -artist.inverted,-track, -time, -genre,   
+            -date.entered, ... = -date.peaked)%>% 
+     select(year, artist=artist.inverted, time, track, date=date.entered, week, rank) %>% 
+     arrange(track)%>% 
+     filter(!is.na(rank))%>% 
+     separate(week, into=c("A","B","C"), sep=c(1:2), convert = F)%>% 
+     select(-A,-C) %>% 
+     dplyr::rename(week = B) %>% 
+     arrange(artist,track) %>% 
+     mutate(date=as.Date(date) + (as.numeric(week)-1)*7) %>%
+     mutate(rank = as.integer(rank))
+  bb.tidy
 ```
 
